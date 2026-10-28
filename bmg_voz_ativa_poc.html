@@ -1,0 +1,866 @@
+<title>Voz Ativa · POC BMG</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: fixed topbar · scrollable left doc · fixed 420px right simulator */
+:root {
+  --bg: #fff; --fg: #18181b; --fg2: #52525b; --fg3: #a1a1aa;
+  --border: #e4e4e7; --border2: #d4d4d8;
+  --surface: #f4f4f5; --surface2: #fafafa;
+  --bmg: #E85D04; --bmg-dim: #fff4ed;
+  --inf: #7c3aed;
+  --note-bg: #f0f9ff; --note-bd: #bae6fd; --note-fg: #0369a1;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0f172a; --fg:#f1f5f9; --fg2:#94a3b8; --fg3:#475569;
+    --border:#1e293b; --border2:#334155;
+    --surface:#1e293b; --surface2:#0f172a;
+    --bmg-dim:#2d1500;
+    --note-bg:#0c2341; --note-bd:#1d4ed8; --note-fg:#93c5fd;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#0f172a; --fg:#f1f5f9; --fg2:#94a3b8; --fg3:#475569;
+  --border:#1e293b; --border2:#334155;
+  --surface:#1e293b; --surface2:#0f172a;
+  --bmg-dim:#2d1500;
+  --note-bg:#0c2341; --note-bd:#1d4ed8; --note-fg:#93c5fd;
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+
+/* ── Topbar ── */
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:0 max(2rem,env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:space-between;height:54px;position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:50}
+.tl{display:flex;align-items:center;gap:10px}
+.logo{background:linear-gradient(135deg,var(--bmg),#c44800);width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:#fff;flex-shrink:0}
+.logo-text{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.logo-sep{color:var(--fg3)}
+.logo-sub{font-size:13px;color:var(--fg2)}
+.topbar-pill{font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--fg3)}
+
+/* ── Layout ── */
+.main{margin-right:420px;padding-top:calc(54px + env(safe-area-inset-top,0px))}
+.left{padding:2.5rem max(2.5rem,env(safe-area-inset-left,0px)) 4rem;max-width:840px}
+
+/* ── Hero ── */
+.hero{margin-bottom:2.5rem}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--bmg);margin-bottom:.6rem;display:flex;align-items:center;gap:7px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:2px;background:var(--bmg)}
+.hero-title{font-size:1.85rem;font-weight:600;line-height:1.2;letter-spacing:-.03em;margin-bottom:.7rem;text-wrap:balance}
+.hero-title em{font-style:normal;color:var(--bmg)}
+.hero-desc{font-size:14px;color:var(--fg2);line-height:1.75;max-width:660px}
+.sim-note{margin-top:1rem;background:var(--bmg-dim);border-left:3px solid var(--bmg);border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;color:var(--fg2);line-height:1.65}
+.sim-note strong{display:block;color:var(--fg);font-weight:600;margin-bottom:3px;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+
+/* ── Sections ── */
+.sec-block{margin-bottom:2.5rem}
+.sec-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);margin-bottom:1.2rem;display:flex;align-items:center;gap:10px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── Cards ── */
+.uc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.uc-card{border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:var(--bg)}
+.uc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.uc-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--fg3)}
+.badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px}
+.b-adm{background:#fef3c7;color:#92400e}
+.b-voz{background:#ede9fe;color:#5b21b6}
+.b-msg{background:#dbeafe;color:#1e40af}
+.b-rsk{background:#fff7ed;color:#c2410c}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .b-adm{background:#2d1f00;color:#fbbf24}
+  :root:not([data-theme="light"]) .b-voz{background:#2e1065;color:#c4b5fd}
+  :root:not([data-theme="light"]) .b-msg{background:#1e3a5f;color:#93c5fd}
+  :root:not([data-theme="light"]) .b-rsk{background:#3d1500;color:#fb923c}
+}
+:root[data-theme="dark"] .b-adm{background:#2d1f00;color:#fbbf24}
+:root[data-theme="dark"] .b-voz{background:#2e1065;color:#c4b5fd}
+:root[data-theme="dark"] .b-msg{background:#1e3a5f;color:#93c5fd}
+:root[data-theme="dark"] .b-rsk{background:#3d1500;color:#fb923c}
+.uc-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.uc-desc{font-size:12px;color:var(--fg2);line-height:1.5}
+
+/* ── Flow steps ── */
+.flow-steps{display:flex;flex-direction:column}
+.fstep{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.fstep:last-child{border-bottom:none}
+.fnum{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;margin-top:1px}
+.fn-adm{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
+.fn-sys{background:#ede9fe;color:#5b21b6;border:1px solid #c4b5fd}
+.fn-ast{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.fn-cli{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.fn-op{background:#fce7f3;color:#9d174d;border:1px solid #fbcfe8}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .fn-adm{background:rgba(254,249,195,.12);border-color:rgba(253,224,71,.3);color:#fde047}
+  :root:not([data-theme="light"]) .fn-sys{background:rgba(237,233,254,.12);border-color:rgba(196,181,253,.3);color:#c4b5fd}
+  :root:not([data-theme="light"]) .fn-ast{background:rgba(219,234,254,.12);border-color:rgba(147,197,253,.3);color:#93c5fd}
+  :root:not([data-theme="light"]) .fn-cli{background:rgba(220,252,231,.12);border-color:rgba(134,239,172,.3);color:#86efac}
+  :root:not([data-theme="light"]) .fn-op{background:rgba(252,231,243,.12);border-color:rgba(251,207,232,.3);color:#fbcfe8}
+}
+:root[data-theme="dark"] .fn-adm{background:rgba(254,249,195,.12);border-color:rgba(253,224,71,.3);color:#fde047}
+:root[data-theme="dark"] .fn-sys{background:rgba(237,233,254,.12);border-color:rgba(196,181,253,.3);color:#c4b5fd}
+:root[data-theme="dark"] .fn-ast{background:rgba(219,234,254,.12);border-color:rgba(147,197,253,.3);color:#93c5fd}
+:root[data-theme="dark"] .fn-cli{background:rgba(220,252,231,.12);border-color:rgba(134,239,172,.3);color:#86efac}
+:root[data-theme="dark"] .fn-op{background:rgba(252,231,243,.12);border-color:rgba(251,207,232,.3);color:#fbcfe8}
+.f-actor{font-size:10px;font-weight:600;color:var(--fg3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.f-text{font-size:13px;color:var(--fg);line-height:1.5}
+.f-text code{font-family:'DM Mono',monospace;font-size:11px;background:var(--surface);padding:1px 5px;border-radius:4px;color:var(--inf)}
+.flow-note{background:var(--note-bg);border:1px solid var(--note-bd);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--note-fg);line-height:1.5;margin-top:.75rem}
+.flow-note code{font-family:'DM Mono',monospace;font-size:11px;background:var(--surface);padding:1px 4px;border-radius:3px}
+
+/* ── Branches ── */
+.branches{display:flex;flex-direction:column;gap:6px}
+.branch{border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;gap:8px;background:var(--bg)}
+.b-if{font-size:10px;font-weight:700;color:var(--bmg);flex-shrink:0;font-family:'DM Mono',monospace;margin-top:2px}
+.b-tx{font-size:12.5px;color:var(--fg2);line-height:1.55}
+.b-tx strong{color:var(--fg);font-weight:500}
+
+/* ── Guardrails ── */
+.glist{display:flex;flex-direction:column;gap:6px}
+.gitem{border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;gap:10px;background:var(--bg)}
+.g-ico{font-size:15px;flex-shrink:0;margin-top:1px}
+.g-trig{font-size:13px;font-weight:500;margin-bottom:2px;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.g-act{font-size:12px;color:var(--fg2);line-height:1.4}
+.gtag{font-size:10px;font-weight:500;padding:1px 7px;border-radius:3px}
+.gt-m{background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe}
+.gt-r{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.gt-s{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .gt-m{background:#2e1065;color:#c4b5fd;border-color:rgba(196,181,253,.3)}
+  :root:not([data-theme="light"]) .gt-r{background:#3d0d0d;color:#fca5a5;border-color:rgba(252,165,165,.3)}
+  :root:not([data-theme="light"]) .gt-s{background:#052e16;color:#6ee7b7;border-color:rgba(110,231,183,.3)}
+}
+:root[data-theme="dark"] .gt-m{background:#2e1065;color:#c4b5fd;border-color:rgba(196,181,253,.3)}
+:root[data-theme="dark"] .gt-r{background:#3d0d0d;color:#fca5a5;border-color:rgba(252,165,165,.3)}
+:root[data-theme="dark"] .gt-s{background:#052e16;color:#6ee7b7;border-color:rgba(110,231,183,.3)}
+
+/* ══════════════ RIGHT PANEL ══════════════ */
+.right{position:fixed;top:calc(54px + env(safe-area-inset-top,0px));right:0;width:420px;height:calc(100vh - 54px - env(safe-area-inset-top,0px));display:flex;flex-direction:column;overflow:hidden;z-index:40;background:#0c1426}
+
+.tab-bar{display:flex;background:#1a2540;border-bottom:1px solid #2a3f5a;flex-shrink:0}
+.tab{flex:1;padding:10px 8px;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#5a7496;text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;user-select:none}
+.tab.active{color:#e2e8f0;border-bottom-color:#E85D04}
+.tab:hover:not(.active){color:#8a9bb8;background:rgba(255,255,255,.03)}
+
+.vpanel,.mpanel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.hidden{display:none!important}
+
+/* Call header */
+.call-hdr{background:#1a2540;border-bottom:1px solid #2a3f5a;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.call-status{display:flex;align-items:center;gap:6px}
+.cdot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse-g 2s infinite}
+@keyframes pulse-g{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.3)}}
+.clbl{font-size:11px;font-weight:600;color:#22c55e;letter-spacing:.04em;text-transform:uppercase}
+.ctimer{font-family:'DM Mono',monospace;font-size:12px;color:#5a7496}
+
+.call-info{background:#1a2540;border-bottom:1px solid #2a3f5a;padding:11px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.call-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#E85D04,#c44800);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.call-name{color:#e2e8f0;font-size:13px;font-weight:600;line-height:1.2}
+.call-phone{color:#5a7496;font-size:11px;font-family:'DM Mono',monospace}
+.call-ctag{margin-left:auto;font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;background:#2d1500;color:#fb923c;flex-shrink:0}
+
+.transcript{background:#0c1426;flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:3px;scroll-behavior:smooth}
+.transcript::-webkit-scrollbar{width:3px}
+.transcript::-webkit-scrollbar-thumb{background:#2a3f5a;border-radius:2px}
+
+.tr-row{display:flex;margin-bottom:2px}
+.tr-row.asst{justify-content:flex-start}
+.tr-row.cli{justify-content:flex-end}
+.tr-row.sys{justify-content:center}
+.tr-bbl{max-width:88%;padding:7px 11px 5px;border-radius:10px;font-size:12.5px;line-height:1.45}
+.tr-bbl.asst{background:#1d3a6e;color:#e2e8f0;border-bottom-left-radius:3px}
+.tr-bbl.cli{background:#2d1f6e;color:#e2e8f0;border-bottom-right-radius:3px}
+.tr-bbl.op{background:#3a1545;color:#e2e8f0;border-bottom-left-radius:3px;border-left:2px solid #ec4899}
+.tr-bbl.sys-ev{background:#162032;border:1px solid #2a3f5a;border-radius:8px;color:#5a7496;font-size:11px;font-family:'DM Mono',monospace;padding:5px 12px;text-align:center;max-width:100%}
+.tr-actor{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px}
+.tr-actor.asst{color:#7c3aed}
+.tr-actor.cli{color:#5a7496;text-align:right}
+.tr-actor.op{color:#f472b6}
+.tr-ts{font-size:10px;color:#3d5470;text-align:right;margin-top:2px}
+
+.vtyping{display:flex;gap:4px;align-items:center;padding:8px 12px;background:#1d3a6e;border-radius:10px;border-bottom-left-radius:3px;width:fit-content}
+.vtyping span{width:5px;height:5px;border-radius:50%;background:#7c3aed;animation:blink 1.2s infinite}
+.vtyping span:nth-child(2){animation-delay:.2s}
+.vtyping span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+.call-footer{background:#162032;border-top:1px solid #2a3f5a;padding:10px 12px;flex-shrink:0}
+.cf-lbl{font-size:10px;font-weight:600;color:#3d5470;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.sc-btns{display:flex;flex-direction:column;gap:5px}
+.sc-btn{background:#1a2540;border:1px solid #2a3f5a;border-radius:8px;padding:8px 12px;color:#c8d8ec;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:left;display:flex;align-items:center;gap:7px;transition:background .12s,border-color .12s;width:100%}
+.sc-btn:hover{background:#243555;border-color:#3a5580}
+.sc-btn.off{opacity:.35;cursor:default;pointer-events:none}
+.sc-btn.sel{border-color:#E85D04;color:#fb923c;background:#2d1800}
+.sc-icon{font-size:13px;flex-shrink:0}
+.reset-call{background:#1a2540;border:1px solid #2a3f5a;border-radius:20px;padding:5px 12px;color:#5a7496;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:5px;margin:0 auto;transition:all .12s}
+.reset-call:hover{background:#243555;color:#8a9bb8}
+
+/* ── Message panel ── */
+.msg-hdr{background:#202c33;border-bottom:1px solid #2a3942;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.msg-tl{display:flex;align-items:center;gap:9px}
+.msg-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#E85D04,#c44800);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex-shrink:0}
+.msg-nm{color:#e9edef;font-size:13px;font-weight:500}
+.msg-st{color:#25d366;font-size:11px}
+.reset-wa{background:#1a2329;border:1px solid #2a3942;border-radius:20px;padding:4px 11px;color:#8696a0;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;transition:all .12s}
+.reset-wa:hover{background:#243040;color:#e9edef}
+
+.chat-wa{background:#111b21;flex:1;overflow-y:auto;padding:10px 10px 6px;display:flex;flex-direction:column;gap:3px;scroll-behavior:smooth}
+.chat-wa::-webkit-scrollbar{width:3px}
+.chat-wa::-webkit-scrollbar-thumb{background:#374045;border-radius:2px}
+.ibar-wa{background:#202c33;padding:8px 10px;border-top:1px solid #2a3942;flex-shrink:0}
+.ifake-wa{background:#1a2329;border-radius:20px;padding:7px 14px;font-size:13px;color:#8696a0}
+
+.wa-row{display:flex;margin-bottom:1px}
+.wa-row.s{justify-content:flex-end}
+.wa-row.r{justify-content:flex-start}
+.wa-bbl{max-width:85%;padding:7px 11px 5px;border-radius:10px;font-size:13px;line-height:1.45}
+.wa-bbl.s{background:#005c4b;color:#e9edef;border-bottom-right-radius:3px}
+.wa-bbl.r{background:#202c33;color:#e9edef;border-bottom-left-radius:3px}
+.wa-ts{font-size:10px;color:#8696a0;text-align:right;margin-top:3px}
+.wa-dc{text-align:center;margin:5px 0 3px}
+.wa-dc span{font-size:10px;color:#8696a0;background:#182025;padding:3px 10px;border-radius:8px}
+.wa-sys{text-align:center;margin:4px 0}
+.wa-sys span{font-size:10px;color:#5a7496;background:#162032;border:1px solid #2a3942;padding:3px 10px;border-radius:8px;font-family:'DM Mono',monospace}
+
+.wa-tmpl-wrap{max-width:85%;display:flex;flex-direction:column;gap:0}
+.wa-tmpl-bbl{background:#202c33;border-radius:10px 10px 0 0;padding:8px 12px 6px;color:#e9edef;font-size:13px;line-height:1.45;border-bottom:.5px solid #2a3942}
+.wa-tmpl-btns{display:flex;flex-direction:column;gap:0}
+.wa-tmpl-btn{background:#202c33;border:none;border-top:.5px solid #2a3942;color:#53bdeb;font-size:13px;font-weight:500;padding:9px 12px;text-align:center;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .12s;width:100%}
+.wa-tmpl-btn:hover{background:#1a2329}
+.wa-tmpl-btn.off{opacity:.4;cursor:default;pointer-events:none}
+.wa-tmpl-btn.sel{color:#7ecfb5}
+.wa-tmpl-btn:last-child{border-radius:0 0 10px 10px}
+
+.wa-typing{display:flex;gap:4px;align-items:center;padding:8px 12px;background:#202c33;border-radius:10px;border-bottom-left-radius:3px;width:fit-content}
+.wa-typing span{width:6px;height:6px;border-radius:50%;background:#8696a0;animation:blink 1.2s infinite}
+.wa-typing span:nth-child(2){animation-delay:.2s}
+.wa-typing span:nth-child(3){animation-delay:.4s}
+
+@media (max-width:720px){
+  .main{margin-right:0}
+  .left{padding:1.5rem max(1rem,env(safe-area-inset-left,0px)) 3rem}
+  .right{position:relative;top:auto;right:auto;width:100%;height:80vh}
+  .uc-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .cdot,.vtyping span,.wa-typing span{animation:none}
+}
+
+/* ── Service Blueprint ── */
+.sbp{display:flex;flex-direction:column;gap:6px}
+.sbp-phase{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--bg)}
+.sbp-phase-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;background:var(--surface);border-bottom:1px solid var(--border);color:var(--fg3)}
+.sbp-lanes{display:flex;flex-direction:column}
+.sbp-lane{display:flex;border-bottom:1px solid var(--border)}
+.sbp-lane:last-child{border-bottom:none}
+.sbp-actor-col{width:88px;flex-shrink:0;padding:9px 8px;display:flex;align-items:flex-start;justify-content:center;border-right:1px solid var(--border)}
+.sbp-actor-tag{font-size:10px;font-weight:600;padding:3px 7px;border-radius:5px;text-align:center;line-height:1.3;white-space:nowrap}
+.sbp-content{flex:1;padding:9px 12px;font-size:12.5px;color:var(--fg2);line-height:1.55}
+.sbp-content code{font-family:'DM Mono',monospace;font-size:11px;background:var(--surface);padding:1px 4px;border-radius:3px;color:var(--inf)}
+.sbp-ch-wrap{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.sbp-ch{padding:7px 10px;border-radius:7px;font-size:12px;line-height:1.5}
+.sbp-ch-voz{background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.18)}
+.sbp-ch-msg{background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2)}
+.sbp-ch-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.sbp-ch-voz .sbp-ch-lbl{color:#7c3aed}
+.sbp-ch-msg .sbp-ch-lbl{color:#16a34a}
+.sbp-steps{display:flex;flex-direction:column;gap:5px}
+.sbp-step-item{display:flex;gap:7px;align-items:flex-start}
+.sbp-step-num{width:16px;height:16px;border-radius:50%;background:var(--surface);border:1px solid var(--border2);font-size:9px;font-weight:700;color:var(--fg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.sbp-arrow{text-align:center;color:var(--fg3);font-size:11px;padding:1px 0;letter-spacing:.04em;font-weight:500}
+.sbp-outcomes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 12px}
+.sbp-outcome{border-radius:8px;padding:9px 10px;border:1px solid var(--border)}
+.sbp-outcome-aceite{background:rgba(34,197,94,.05);border-color:rgba(34,197,94,.25)}
+.sbp-outcome-transbordo{background:rgba(234,88,12,.05);border-color:rgba(234,88,12,.2)}
+.sbp-outcome-recusa{background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.18)}
+.sbp-outcome-lbl{font-size:11px;font-weight:700;margin-bottom:5px}
+.sbp-outcome-aceite .sbp-outcome-lbl{color:#16a34a}
+.sbp-outcome-transbordo .sbp-outcome-lbl{color:#ea580c}
+.sbp-outcome-recusa .sbp-outcome-lbl{color:#dc2626}
+.sbp-outcome-step{font-size:11.5px;color:var(--fg2);line-height:1.4;margin-bottom:5px}
+.sbp-outcome-step code{font-family:'DM Mono',monospace;font-size:10px;background:var(--surface);padding:1px 3px;border-radius:3px;color:var(--inf)}
+.sbp-outcome-end{font-size:11px;font-weight:500;color:var(--fg3);border-top:1px solid var(--border);padding-top:5px}
+@media (max-width:720px){
+  .sbp-ch-wrap{grid-template-columns:1fr}
+  .sbp-outcomes{grid-template-columns:1fr}
+  .sbp-actor-col{width:72px}
+}
+</style>
+
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="tl">
+    <div class="logo">BM</div>
+    <span class="logo-text">Voz Ativa · BMG</span>
+    <span class="logo-sep">·</span>
+    <span class="logo-sub">POC Infinity · Empréstimo</span>
+  </div>
+  <span class="topbar-pill">Out/2026</span>
+</div>
+
+<div class="main">
+
+<!-- ═══════════════ LEFT ═══════════════ -->
+<div class="left">
+
+  <div class="hero">
+    <div class="eyebrow">POC Out/2026</div>
+    <div class="hero-title">Oferta de Empréstimo via <em>Voz Ativa</em></div>
+    <div class="hero-desc">POC demonstrando ao BMG que o Infinity conduz de ponta a ponta a jornada de oferta de empréstimo — via <strong>chamada ativa</strong> (AWS Connect) e <strong>canal de mensagem</strong> — desde a confirmação de identidade com máscara de segurança até a simulação do fechamento do contrato, com transbordo fluido para operador humano no backoffice.</div>
+    <div class="sim-note">
+      <strong>Sobre os simuladores</strong>
+      O painel à direita reproduz dois fluxos: <b>Voz</b> (transcrição em tempo real de uma ligação outbound) e <b>Mensagem</b> (canal WhatsApp com template buttons). Em cada fluxo, escolha o cenário — aceite, transbordo ou recusa — para ver como o assistente reage a cada ramificação.<br><br>
+      <b>Esta é uma demonstração de conceito.</b> Na chamada real, o cliente fala naturalmente — o assistente captura a intenção por voz sem botões predefinidos.
+    </div>
+  </div>
+
+  <div class="sec-block">
+    <div class="sec-label">Cenários</div>
+    <div class="uc-grid">
+      <div class="uc-card">
+        <div class="uc-top"><span class="uc-num">CEN-01</span><span class="badge b-adm">Admin</span></div>
+        <div class="uc-title">Cadastro de oferta e disparo de chamada</div>
+        <div class="uc-desc">Administrador BMG registra no backoffice do Infinity o produto de empréstimo, o número do cliente e dados de simulação. O sistema origina a chamada via AWS Connect automaticamente.</div>
+      </div>
+      <div class="uc-card">
+        <div class="uc-top"><span class="uc-num">CEN-02</span><span class="badge b-voz">Voz · Aceite</span></div>
+        <div class="uc-title">Oferta aceita — contrato simulado</div>
+        <div class="uc-desc">Assistente confirma a identidade com máscara de CPF, apresenta a oferta, cliente aceita e o sistema simula o envio do contrato por e-mail ao final da chamada.</div>
+      </div>
+      <div class="uc-card">
+        <div class="uc-top"><span class="uc-num">CEN-03</span><span class="badge b-rsk">Voz · Transbordo</span></div>
+        <div class="uc-title">Transbordo para operador humano</div>
+        <div class="uc-desc">Cliente solicita falar com um atendente humano, ou o assistente atinge o limite de tentativas sem resolução. Transferência automática para operador no backoffice do Infinity.</div>
+      </div>
+      <div class="uc-card">
+        <div class="uc-top"><span class="uc-num">CEN-04</span><span class="badge b-msg">Mensagem</span></div>
+        <div class="uc-title">Oferta via canal de mensagem</div>
+        <div class="uc-desc">A mesma jornada conduzida via WhatsApp: confirmação de identidade por texto, template buttons para aceite, recusa ou escalação para operador humano.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-block">
+    <div class="sec-label">Jornada de alto nível</div>
+    <div class="sbp">
+
+      <!-- FASE 1: Antes -->
+      <div class="sbp-phase">
+        <div class="sbp-phase-lbl">Antes da jornada com o cliente</div>
+        <div class="sbp-lanes">
+          <div class="sbp-lane">
+            <div class="sbp-actor-col"><span class="sbp-actor-tag fn-adm">Admin BMG</span></div>
+            <div class="sbp-content">Cadastra oferta de empréstimo, número do cliente e dados de simulação no backoffice do Infinity</div>
+          </div>
+          <div class="sbp-lane">
+            <div class="sbp-actor-col"><span class="sbp-actor-tag fn-sys">Infinity</span></div>
+            <div class="sbp-content">
+              Avalia o histórico de interação do cliente e calcula a propensão de engajamento por canal — direciona para o canal de maior probabilidade de resposta
+              <div class="sbp-ch-wrap" style="margin-top:8px">
+                <div class="sbp-ch sbp-ch-voz">
+                  <div class="sbp-ch-lbl">📞 Maior propensão a voz</div>
+                  Origina chamada outbound via AWS Connect — evento <code>voice_call_initiated</code>
+                </div>
+                <div class="sbp-ch sbp-ch-msg">
+                  <div class="sbp-ch-lbl">💬 Maior propensão a mensagem</div>
+                  Dispara template de abordagem via WhatsApp Business API
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sbp-arrow">↓ jornada com o assistente ↓</div>
+
+      <!-- FASE 2: Durante -->
+      <div class="sbp-phase">
+        <div class="sbp-phase-lbl">Durante a jornada com o assistente</div>
+        <div class="sbp-lanes">
+          <div class="sbp-lane">
+            <div class="sbp-actor-col"><span class="sbp-actor-tag fn-ast">Assistente</span></div>
+            <div class="sbp-content">
+              <div class="sbp-steps">
+                <div class="sbp-step-item"><div class="sbp-step-num">1</div><div>Confirma identidade com máscara de CPF — evento <code>identity_confirmed</code></div></div>
+                <div class="sbp-step-item"><div class="sbp-step-num">2</div><div>Apresenta oferta de empréstimo consignado — evento <code>offer_presented</code></div></div>
+                <div class="sbp-step-item"><div class="sbp-step-num">3</div><div>Conduz negociação com regras pré-definidas (objeções comuns)</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="sbp-lane">
+            <div class="sbp-actor-col"><span class="sbp-actor-tag fn-cli">Cliente</span></div>
+            <div class="sbp-content">Reage à oferta — aceita, pede mais informações, recusa ou solicita atendente humano</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sbp-arrow">↓ desfecho ↓</div>
+
+      <!-- FASE 3: Desfechos -->
+      <div class="sbp-phase">
+        <div class="sbp-phase-lbl">Desfechos possíveis</div>
+        <div class="sbp-outcomes">
+          <div class="sbp-outcome sbp-outcome-aceite">
+            <div class="sbp-outcome-lbl">✅ Aceite</div>
+            <div class="sbp-outcome-step">Assistente registra aceite — <code>negotiation_accepted</code> → transfere para operador — <code>escalated_to_human</code></div>
+            <div class="sbp-outcome-end">Operador BMG finaliza a contratação via Backoffice Infinity</div>
+            <div class="sbp-outcome-step" style="margin-top:6px;font-size:11px;color:#d97706">⚡ Futuro: integração permite fechar contrato diretamente, sem atendente humano</div>
+          </div>
+          <div class="sbp-outcome sbp-outcome-transbordo">
+            <div class="sbp-outcome-lbl">👤 Transbordo</div>
+            <div class="sbp-outcome-step">Transfere para operador no Backoffice Infinity — <code>escalated_to_human</code></div>
+            <div class="sbp-outcome-end">Operador assume o atendimento</div>
+          </div>
+          <div class="sbp-outcome sbp-outcome-recusa">
+            <div class="sbp-outcome-lbl">🚫 Recusa</div>
+            <div class="sbp-outcome-step">Assistente registra recusa — <code>negotiation_rejected</code></div>
+            <div class="sbp-outcome-end">Encerra chamada ou conversa</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="flow-note" style="margin-top:.75rem"><strong>Habilitador técnico:</strong> AWS Connect origina a chamada e repassa ao Infinity processá-la. Hipótese validada em <code>2-plan/infinity/aws-connect-voice-channel/</code></div>
+  </div>
+
+  <div class="sec-block">
+    <div class="sec-label">Capacidades da POC</div>
+    <div class="branches">
+      <div class="branch"><div class="b-if">CAP-01</div><div class="b-tx"><strong>Cadastro de oferta de empréstimo:</strong> admin registra produto, número do cliente e dados de simulação no backoffice do Infinity.</div></div>
+      <div class="branch"><div class="b-if">CAP-02</div><div class="b-tx"><strong>Disparo de chamada outbound:</strong> Infinity origina a ligação via AWS Connect para o número cadastrado.</div></div>
+      <div class="branch"><div class="b-if">CAP-03</div><div class="b-tx"><strong>Confirmação de identidade com máscara:</strong> CPF mascarado ("seus últimos 4 dígitos são XXXX?") antes de prosseguir com a oferta.</div></div>
+      <div class="branch"><div class="b-if">CAP-04</div><div class="b-tx"><strong>Negociação guiada por regras:</strong> apresenta oferta, responde objeções comuns (preço, já tenho crédito), registra aceite ou recusa.</div></div>
+      <div class="branch"><div class="b-if">CAP-05</div><div class="b-tx"><strong>Transbordo para operador:</strong> quando solicitado ou após limite de tentativas — transferência para backoffice Infinity.</div></div>
+      <div class="branch"><div class="b-if">CAP-06</div><div class="b-tx"><strong>Transferência para operador ao aceite:</strong> ao registrar o aceite, o assistente transfere para um operador BMG via Backoffice Infinity para finalizar a contratação. <em>Futuro: integração direta permitirá fechar, confirmar e enviar a proposta sem atendimento humano.</em></div></div>
+    </div>
+  </div>
+
+  <div class="sec-block">
+    <div class="sec-label">Eventos instrumentados (P0)</div>
+    <div class="branches">
+      <div class="branch"><div class="b-if">EV-01</div><div class="b-tx"><strong>voice_call_initiated:</strong> chamada disparada com sucesso via AWS Connect — meta: 100% das tentativas manuais.</div></div>
+      <div class="branch"><div class="b-if">EV-02</div><div class="b-tx"><strong>identity_confirmed:</strong> cliente confirmou identidade com máscara — meta: ≥ 80% das chamadas completadas.</div></div>
+      <div class="branch"><div class="b-if">EV-03</div><div class="b-tx"><strong>offer_presented:</strong> oferta apresentada ao cliente — base para taxa de conversão da POC.</div></div>
+      <div class="branch"><div class="b-if">EV-04</div><div class="b-tx"><strong>negotiation_accepted / rejected:</strong> resultado da negociação — base para taxa de aceite e recusa.</div></div>
+      <div class="branch"><div class="b-if">EV-05</div><div class="b-tx"><strong>escalated_to_human:</strong> ativado em dois cenários — transbordo por solicitação do cliente, e após aceite da oferta para finalização da contratação pelo operador.</div></div>
+      <div class="branch"><div class="b-if">EV-06</div><div class="b-tx"><strong>contract_simulated</strong> <em>(futuro):</em> evento emitido quando a integração permitir fechar o contrato sem atendente humano — fora do escopo desta POC.</div></div>
+    </div>
+  </div>
+
+  <div class="sec-block">
+    <div class="sec-label">Guardrails e fora de escopo</div>
+    <div class="glist">
+      <div class="gitem">
+        <div class="g-ico">🔒</div>
+        <div>
+          <div class="g-trig">Máscara de segurança obrigatória <span class="gtag gt-m">Obrigatório</span></div>
+          <div class="g-act">O assistente nunca revela o CPF completo. A confirmação usa apenas os últimos dígitos mascarados. A oferta só é apresentada após confirmação bem-sucedida da identidade.</div>
+        </div>
+      </div>
+      <div class="gitem">
+        <div class="g-ico">⚡</div>
+        <div>
+          <div class="g-trig">Transbordo automático por limite de tentativas <span class="gtag gt-r">Risco</span></div>
+          <div class="g-act">Se o assistente atingir o limite sem resolver, ou o cliente solicitar explicitamente um humano, o transbordo é ativado imediatamente — sem continuar insistindo com a oferta.</div>
+        </div>
+      </div>
+      <div class="gitem">
+        <div class="g-ico">🚫</div>
+        <div>
+          <div class="g-trig">Fora do escopo desta POC <span class="gtag gt-s">Escopo</span></div>
+          <div class="g-act">Integração com CRM/core bancário BMG, SLA de produção, volume em escala, autenticação biométrica de voz, gravação regulatória e emissão real de apólice.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /left -->
+
+<!-- ═══════════════ RIGHT ═══════════════ -->
+<div class="right">
+  <div class="tab-bar">
+    <div class="tab active" id="tab-v" onclick="switchTab('voice')">📞 Fluxo de Voz</div>
+    <div class="tab" id="tab-m" onclick="switchTab('msg')">💬 Fluxo de Mensagem</div>
+  </div>
+
+  <!-- VOICE PANEL -->
+  <div class="vpanel" id="vp">
+    <div class="call-hdr">
+      <div class="call-status">
+        <div class="cdot" id="cdot"></div>
+        <div class="clbl" id="clbl">Em chamada</div>
+      </div>
+      <div class="ctimer" id="ctimer">0:00</div>
+    </div>
+    <div class="call-info">
+      <div class="call-av">JS</div>
+      <div>
+        <div class="call-name">João Silva</div>
+        <div class="call-phone">(11) 9 ****-*321 · ***.***.***-90</div>
+      </div>
+      <div class="call-ctag">BMG · Cliente</div>
+    </div>
+    <div class="transcript" id="tr"></div>
+    <div class="call-footer" id="cfooter"></div>
+  </div>
+
+  <!-- MSG PANEL -->
+  <div class="mpanel hidden" id="mp">
+    <div class="msg-hdr">
+      <div class="msg-tl">
+        <div class="msg-av">BM</div>
+        <div>
+          <div class="msg-nm">BMG · Assistente Infinity</div>
+          <div class="msg-st">● online</div>
+        </div>
+      </div>
+      <button class="reset-wa" onclick="resetMsg()">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M1 6a5 5 0 1 0 1.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M1 2v3h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Nova conversa
+      </button>
+    </div>
+    <div class="chat-wa" id="cwa">
+      <div class="wa-dc"><span>Hoje</span></div>
+    </div>
+    <div class="ibar-wa"><div class="ifake-wa">Digite uma mensagem...</div></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function ts() {
+  const d = new Date();
+  return d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+let callTimer = null, callSecs = 0, msgStarted = false;
+
+function switchTab(tab) {
+  const vp = document.getElementById('vp'), mp = document.getElementById('mp');
+  const tv = document.getElementById('tab-v'), tm = document.getElementById('tab-m');
+  if (tab === 'voice') {
+    vp.classList.remove('hidden'); mp.classList.add('hidden');
+    tv.classList.add('active'); tm.classList.remove('active');
+  } else {
+    vp.classList.add('hidden'); mp.classList.remove('hidden');
+    tv.classList.remove('active'); tm.classList.add('active');
+    if (!msgStarted) { msgStarted = true; startMsg(); }
+  }
+}
+
+/* ── VOICE ── */
+function tr() { return document.getElementById('tr'); }
+
+function startCallTimer() {
+  callSecs = 0;
+  callTimer = setInterval(() => {
+    callSecs++;
+    const el = document.getElementById('ctimer');
+    if (el) el.textContent = Math.floor(callSecs/60) + ':' + String(callSecs%60).padStart(2,'0');
+  }, 1000);
+}
+
+function stopCallTimer() {
+  clearInterval(callTimer); callTimer = null;
+  const dot = document.getElementById('cdot'), lbl = document.getElementById('clbl');
+  if (dot) { dot.style.background='#ef4444'; dot.style.animation='none'; }
+  if (lbl) { lbl.textContent='Encerrada'; lbl.style.color='#ef4444'; }
+}
+
+function addSysEv(text) {
+  const t = tr();
+  const d = document.createElement('div');
+  d.className='tr-row sys';
+  d.innerHTML=`<div class="tr-bbl sys-ev">⚙ ${text}</div>`;
+  t.appendChild(d); t.scrollTop=t.scrollHeight;
+}
+
+function mkVTyping() {
+  const t = tr();
+  const d = document.createElement('div');
+  d.className='tr-row asst';
+  d.innerHTML='<div class="vtyping"><span></span><span></span><span></span></div>';
+  t.appendChild(d); t.scrollTop=t.scrollHeight;
+  return d;
+}
+
+function addAsst(html, ms=1500) {
+  return new Promise(r => {
+    const typ=mkVTyping();
+    setTimeout(()=>{
+      typ.remove();
+      const t=tr(), d=document.createElement('div');
+      d.className='tr-row asst';
+      d.innerHTML=`<div><div class="tr-actor asst">Assistente Infinity</div><div class="tr-bbl asst">${html}<div class="tr-ts">${ts()}</div></div></div>`;
+      t.appendChild(d); t.scrollTop=t.scrollHeight; r();
+    }, ms);
+  });
+}
+
+function addCli(html, ms=900) {
+  return new Promise(r => {
+    setTimeout(()=>{
+      const t=tr(), d=document.createElement('div');
+      d.className='tr-row cli';
+      d.innerHTML=`<div style="text-align:right"><div class="tr-actor cli">João Silva</div><div class="tr-bbl cli">${html}<div class="tr-ts">${ts()}</div></div></div>`;
+      t.appendChild(d); t.scrollTop=t.scrollHeight; r();
+    }, ms);
+  });
+}
+
+function addOp(html, ms=1900) {
+  return new Promise(r => {
+    const typ=mkVTyping();
+    setTimeout(()=>{
+      typ.remove();
+      const t=tr(), d=document.createElement('div');
+      d.className='tr-row asst';
+      d.innerHTML=`<div><div class="tr-actor op">Operador BMG · Ana Lima</div><div class="tr-bbl op">${html}<div class="tr-ts">${ts()}</div></div></div>`;
+      t.appendChild(d); t.scrollTop=t.scrollHeight; r();
+    }, ms);
+  });
+}
+
+function showScenarioPicker(onSel) {
+  const footer=document.getElementById('cfooter');
+  footer.innerHTML=`
+    <div class="cf-lbl">Escolha o cenário para continuar</div>
+    <div class="sc-btns" id="scbtns">
+      <button class="sc-btn" data-sc="aceita"><span class="sc-icon">✅</span>Cliente aceita a oferta</button>
+      <button class="sc-btn" data-sc="transbordo"><span class="sc-icon">👤</span>Cliente solicita operador humano</button>
+      <button class="sc-btn" data-sc="recusa"><span class="sc-icon">🚫</span>Cliente recusa a oferta</button>
+    </div>`;
+  document.querySelectorAll('#scbtns .sc-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('#scbtns .sc-btn').forEach(b=>b.classList.add('off'));
+      btn.classList.remove('off'); btn.classList.add('sel');
+      setTimeout(()=>{
+        footer.innerHTML=`<div style="display:flex;justify-content:center;padding:4px"><button class="reset-call" onclick="resetVoice()"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M1 6a5 5 0 1 0 1.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M1 2v3h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Nova chamada</button></div>`;
+      }, 500);
+      onSel(btn.dataset.sc);
+    });
+  });
+}
+
+async function startVoiceCall() {
+  await wait(600);
+  addSysEv('Chamada originada via AWS Connect → (11) 9 ****-*321');
+  startCallTimer();
+  await wait(900);
+  await addAsst('Oi, boa tarde! Tô falando com o João Silva?', 1600);
+  await addCli('Sim, sou eu mesmo.', 1100);
+  await addAsst('João, aqui é o assistente do BMG. Tenho uma oferta de crédito pra você, mas antes preciso confirmar um dado rápido: os últimos 4 dígitos do seu CPF terminam em <b>5-90</b>?', 2000);
+  await addCli('Sim, estão corretos.', 900);
+  addSysEv('Identidade confirmada — identity_confirmed');
+  await addAsst('Ótimo! João, o BMG tem um <b>Empréstimo Consignado</b> pra você: até <b>R$ 10.000</b>, taxa de <b>1,89% a.m.</b>, desconto direto no benefício. Bora fechar?', 2200);
+  addSysEv('Oferta apresentada — offer_presented');
+  showScenarioPicker(async sc=>{
+    if (sc==='aceita') await voiceAceita();
+    else if (sc==='transbordo') await voiceTransbordo();
+    else await voiceRecusa();
+  });
+}
+
+async function voiceAceita() {
+  await addCli('Pode sim, me explica melhor.', 1000);
+  await addAsst('Claro! São até <b>R$ 10.000</b>, prazo de até <b>36 meses</b>, taxa de <b>1,89% a.m.</b>. A parcela sai direto do benefício e nem consulta SPC/Serasa. Fechamos?', 2300);
+  await addCli('Sim, aceito.', 900);
+  addSysEv('Aceite registrado — negotiation_accepted');
+  await addAsst('Ótimo, João! Vou te passar pra um dos nossos atendentes pra finalizar a contratação. Um segundo.', 2000);
+  addSysEv('Transferindo para operador — escalated_to_human');
+  await addOp('Oi, João! Aqui é a Ana do BMG. Vi que você topou o empréstimo — ótimo! Vou finalizar seu cadastro aqui. Me confirma o seu e-mail?', 2200);
+  await addCli('pode ser joao.silva@email.com', 900);
+  await addOp('Perfeito! Contratação registrada. Você vai receber a confirmação no e-mail. Mais alguma coisa?', 1600);
+  await addCli('Não, tá ótimo. Obrigado!', 800);
+  await addOp('Valeu, João! Bom dia!', 1000);
+  addSysEv('Contratação finalizada pelo operador');
+  stopCallTimer();
+}
+
+async function voiceTransbordo() {
+  await addCli('Prefiro falar com um atendente humano, por favor.', 1000);
+  await addAsst('Tudo bem! Te passo pra um atendente agora. Um segundo.', 1600);
+  addSysEv('Transbordo ativado → Backoffice Infinity · escalated_to_human');
+  await wait(700);
+  await addOp('Oi, João! Aqui é a Ana do BMG. Vi que você quer saber mais sobre o empréstimo — como posso te ajudar?', 2200);
+  await addCli('Quero entender as condições antes de decidir.', 1100);
+  await addOp('Claro! São até R$ 10.000, taxa de 1,89% a.m., prazo de até 36 meses, sem SPC/Serasa. Posso mandar uma simulação no seu e-mail. Qual é?', 2000);
+  await addCli('pode ser joao.silva@email.com', 900);
+  await addOp('Mandado! Mais alguma dúvida?', 1300);
+}
+
+async function voiceRecusa() {
+  await addCli('Não tenho interesse, obrigado.', 900);
+  await addAsst('Tudo bem, João! Se mudar de ideia é só ligar no <b>0800 722 0000</b>. Mais alguma coisa?', 1800);
+  await addCli('Não, pode encerrar.', 800);
+  await addAsst('Valeu, João! Bom dia!', 1200);
+  addSysEv('Chamada encerrada · negotiation_rejected');
+  stopCallTimer();
+}
+
+function resetVoice() {
+  clearInterval(callTimer); callTimer=null; callSecs=0;
+  const timer=document.getElementById('ctimer'), dot=document.getElementById('cdot');
+  const lbl=document.getElementById('clbl'), t=document.getElementById('tr');
+  const f=document.getElementById('cfooter');
+  if (timer) timer.textContent='0:00';
+  if (dot) { dot.style.background='#22c55e'; dot.style.animation='pulse-g 2s infinite'; }
+  if (lbl) { lbl.textContent='Em chamada'; lbl.style.color='#22c55e'; }
+  if (t) t.innerHTML='';
+  if (f) f.innerHTML='';
+  startVoiceCall();
+}
+
+/* ── MESSAGE ── */
+function cwa() { return document.getElementById('cwa'); }
+
+function waSent(html) {
+  const c=cwa(), d=document.createElement('div');
+  d.className='wa-row s';
+  d.innerHTML=`<div class="wa-bbl s">${html}<div class="wa-ts">${ts()} ✓✓</div></div>`;
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+
+function mkWaTyping() {
+  const c=cwa(), d=document.createElement('div');
+  d.className='wa-row r';
+  d.innerHTML='<div class="wa-typing"><span></span><span></span><span></span></div>';
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+  return d;
+}
+
+function waRecv(html, ms=1200) {
+  return new Promise(r=>{
+    const typ=mkWaTyping();
+    setTimeout(()=>{
+      typ.remove();
+      const c=cwa(), d=document.createElement('div');
+      d.className='wa-row r';
+      d.innerHTML=`<div class="wa-bbl r">${html}<div class="wa-ts">${ts()}</div></div>`;
+      c.appendChild(d); c.scrollTop=c.scrollHeight; r();
+    }, ms);
+  });
+}
+
+function waSysEv(text) {
+  const c=cwa(), d=document.createElement('div');
+  d.className='wa-sys';
+  d.innerHTML=`<span>⚙ ${text}</span>`;
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+
+function waTemplate(body, buttons, onSel) {
+  return new Promise(r=>{
+    const typ=mkWaTyping();
+    setTimeout(()=>{
+      typ.remove();
+      const c=cwa(), wrap=document.createElement('div');
+      wrap.className='wa-row r';
+      const inner=document.createElement('div');
+      inner.className='wa-tmpl-wrap';
+      const bbl=document.createElement('div');
+      bbl.className='wa-tmpl-bbl';
+      bbl.innerHTML=body+`<div class="wa-ts">${ts()}</div>`;
+      inner.appendChild(bbl);
+      const btns=document.createElement('div');
+      btns.className='wa-tmpl-btns';
+      buttons.forEach(b=>{
+        const btn=document.createElement('button');
+        btn.className='wa-tmpl-btn';
+        btn.innerHTML=b.label;
+        btn.addEventListener('click',()=>{
+          btns.querySelectorAll('.wa-tmpl-btn').forEach(x=>x.classList.add('off'));
+          btn.classList.remove('off'); btn.classList.add('sel');
+          waSent(b.label.replace(/<[^>]*>/g,''));
+          onSel(b.id);
+        });
+        btns.appendChild(btn);
+      });
+      inner.appendChild(btns);
+      wrap.appendChild(inner);
+      c.appendChild(wrap); c.scrollTop=c.scrollHeight; r();
+    }, 1200);
+  });
+}
+
+async function startMsg() {
+  await wait(700);
+  await waRecv('Oi, João! Aqui é o assistente do <b>BMG</b>. Tenho uma oferta de crédito pra você, mas preciso confirmar um dado antes 👇', 1600);
+  await waTemplate(
+    'Os <b>últimos 4 dígitos</b> do seu CPF terminam em <b>5-90</b>?',
+    [{id:'sim',label:'✅ Sim, confirmado'},{id:'nao',label:'❌ Não, não sou eu'}],
+    async id=>{ if (id==='sim') await msgIdentOk(); else await msgIdentFail(); }
+  );
+}
+
+async function msgIdentOk() {
+  await waRecv('Confirmado! ✅', 900);
+  waSysEv('identity_confirmed');
+  await waRecv('João, o BMG tem um <b>Empréstimo Consignado</b> pra você:<br>• Até <b>R$ 10.000</b><br>• Taxa de <b>1,89% a.m.</b><br>• Até <b>36 meses</b><br>• Desconto direto no benefício', 2000);
+  waSysEv('offer_presented');
+  await waTemplate(
+    'Bora fechar?',
+    [
+      {id:'aceita',label:'👍 Sim, quero contratar'},
+      {id:'info',  label:'❓ Quero mais informações'},
+      {id:'recusa',label:'🙅 Não tenho interesse'},
+      {id:'humano',label:'👤 Falar com atendente'}
+    ],
+    async id=>{
+      if (id==='aceita') await msgAceita();
+      else if (id==='info') await msgInfo();
+      else if (id==='recusa') await msgRecusa();
+      else await msgHumano();
+    }
+  );
+}
+
+async function msgIdentFail() {
+  await waRecv('Tudo bem! Se a mensagem chegou por engano, nos chama no <b>0800 722 0000</b>. Bom dia!', 1800);
+}
+
+async function msgAceita() {
+  await waRecv('Ótima escolha! 🎉', 900);
+  waSysEv('negotiation_accepted');
+  await waRecv('Vou te passar pra um atendente pra finalizar a contratação. Um segundo ⏳', 1200);
+  waSysEv('escalated_to_human → Backoffice Infinity');
+  await waRecv('<b>👤 Ana Lima — BMG</b><br>Oi, João! Vi que você topou o empréstimo — ótimo! Para finalizar, me confirma o seu e-mail?', 2200);
+}
+
+async function msgInfo() {
+  await waRecv('Claro! Olha só:<br>• Até <b>R$ 10.000</b><br>• Taxa de <b>1,89% a.m.</b><br>• Prazo de até <b>36 meses</b><br>• Parcela descontada direto no benefício<br>• Sem consulta ao SPC/Serasa', 2000);
+  await waTemplate(
+    'Quer contratar agora?',
+    [{id:'aceita',label:'👍 Sim, vou contratar'},{id:'recusa',label:'🙅 Não por enquanto'},{id:'humano',label:'👤 Falar com atendente'}],
+    async id=>{ if (id==='aceita') await msgAceita(); else if (id==='recusa') await msgRecusa(); else await msgHumano(); }
+  );
+}
+
+async function msgRecusa() {
+  await waRecv('Sem problema! Se mudar de ideia: <b>0800 722 0000</b>. Bom dia! 👋', 1600);
+  waSysEv('negotiation_rejected');
+}
+
+async function msgHumano() {
+  await waRecv('Claro! Um segundo. ⏳', 1200);
+  waSysEv('escalated_to_human → Backoffice Infinity');
+  await waRecv('<b>👤 Ana Lima — BMG</b><br>Oi, João! Aqui é a Ana. Vi que você quer saber mais sobre o empréstimo — qual é a dúvida?', 2200);
+}
+
+function resetMsg() {
+  const c=document.getElementById('cwa');
+  if (c) c.innerHTML='<div class="wa-dc"><span>Hoje</span></div>';
+  startMsg();
+}
+
+window.addEventListener('load', ()=>{ startVoiceCall(); });
+</script>
